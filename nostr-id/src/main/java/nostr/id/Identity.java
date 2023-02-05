@@ -3,6 +3,7 @@ package nostr.id;
 import nostr.base.BaseConfiguration;
 import nostr.base.ISignable;
 import nostr.base.ITag;
+import nostr.crypto.bech32.Bech32;
 import nostr.util.NostrUtil;
 import nostr.base.PrivateKey;
 import nostr.base.Profile;
@@ -15,6 +16,7 @@ import nostr.event.tag.PubKeyTag;
 import nostr.crypto.schnorr.Schnorr;
 import java.beans.IntrospectionException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -168,6 +170,60 @@ public class Identity {
         var iv64 = Base64Encoder.encode(ivParamSpec.getIV());
 
         return new String(encryptedMessage64) + "?iv=" + new String(iv64);
+    }
+
+    public  static  void main(String[] args) throws InvalidAlgorithmParameterException, NostrException, NoSuchPaddingException, IllegalBlockSizeException, UnsupportedEncodingException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // my public
+        String privateBech32 = "324b98ed5c927aa0dbf1dbb75b1b49a826267f88090a4aacc7771ab20c81acde";
+        PrivateKey privateKey = new PrivateKey(NostrUtil.hexToBytes(privateBech32));
+//        rcptPrivateKey = privateKey.getRawData();
+        System.out.println("privateKey : "+privateKey.toString()+"=>"+privateKey.toBech32());
+
+        String publicKeyBech32 = "8ed237334555289b3f412a88f391b1a33e90f01a335fc31c410b4a2bcaa04c30";
+        PublicKey publicKey = new PublicKey(NostrUtil.hexToBytes(publicKeyBech32));
+//        senderPublicKey = publicKey.getRawData();
+        System.out.println("publicKey : "+publicKey.toString()+"=>"+publicKey.toBech32());
+
+        Identity.decodeMessage(privateKey.getRawData(),publicKey.getRawData(),"ebUrZAl+Aw3qcLNdWi2ayQ==?iv=ZYriulZZ6iczuk7uwWPwdw==");
+    }
+
+    public static String decodeMessage(byte[] rcptPrivateKey, byte[] senderPublicKey, String message) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, NostrException, UnsupportedEncodingException {
+        // Get IV Message
+        String base64Message = message.split("\\?iv=")[0];
+        String iv = message.split("\\?iv=")[1];
+
+        String decryptedData = null;
+//        try {
+
+            final String secKeyHex = NostrUtil.bytesToHex(rcptPrivateKey);
+            final String pubKeyHex = NostrUtil.bytesToHex(senderPublicKey);
+
+            byte[] initialVectorBytes = Base64.getDecoder().decode(iv.getBytes(StandardCharsets.UTF_8));//initialVectorString.getBytes(StandardCharsets.UTF_8);
+            byte[] encryptedDataBytes = Base64.getDecoder().decode(base64Message.getBytes(StandardCharsets.UTF_8));//encryptedData.getBytes(StandardCharsets.UTF_8);
+
+            var sharedPoint = getSharedSecret(secKeyHex, pubKeyHex);
+            var sharedX = Arrays.copyOfRange(sharedPoint, 1, 33);
+
+            var sharedSecretKey = new SecretKeySpec(sharedX, "AES");
+
+            //Decrypt
+            IvParameterSpec initialVector = new IvParameterSpec(initialVectorBytes);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, sharedSecretKey, initialVector);
+            byte[] decryptedByteArray = cipher.doFinal(encryptedDataBytes);
+
+            decryptedData = new String(decryptedByteArray, StandardCharsets.UTF_8);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+        System.out.println("decryptedData="+decryptedData);
+
+        return decryptedData;
+
+//        return "";
+
+//        return new String(encryptedMessage64) + "?iv=" + new String(iv64);
     }
 
     private static byte[] getSharedSecret(String privateKeyHex, String publicKeyHex) throws NostrException {

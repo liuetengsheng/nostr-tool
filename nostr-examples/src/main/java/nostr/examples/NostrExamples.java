@@ -1,6 +1,7 @@
 package nostr.examples;
 
 import nostr.base.ITag;
+import nostr.crypto.bech32.Bech32;
 import nostr.util.NostrUtil;
 import nostr.base.Profile;
 import nostr.base.PublicKey;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -63,17 +65,21 @@ public class NostrExamples {
             log.log(Level.FINE, "================= The Beginning");
 
             Identity identity = new Identity();
-            Client client = new Client("nostr-java", identity);
+            Client client = new Client("nostr-unift", identity);
+//            sendTextNoteEvent(identity, client);
+//            filters(identity, client);
+//            sendTextNoteEvent(identity, client);
+
 
             ExecutorService executor = Executors.newFixedThreadPool(10);
 
-            executor.submit(() -> {
-                try {
-                    sendTextNoteEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
+//            executor.submit(() -> {
+//                try {
+//                    sendTextNoteEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
 
             executor.submit(() -> {
                 try {
@@ -83,61 +89,61 @@ public class NostrExamples {
                 }
             });
 
-            executor.submit(() -> {
-                try {
-                    mentionsEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    deletionEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    metaDataEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    ephemerealEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    reactionEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    replaceableEvent(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
-
-            executor.submit(() -> {
-                try {
-                    internetIdMetadata(identity, client);
-                } catch (NostrException ex) {
-                    log.log(Level.SEVERE, null, ex);
-                }
-            });
+//            executor.submit(() -> {
+//                try {
+//                    mentionsEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    deletionEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    metaDataEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    ephemerealEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    reactionEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    replaceableEvent(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
+//
+//            executor.submit(() -> {
+//                try {
+//                    internetIdMetadata(identity, client);
+//                } catch (NostrException ex) {
+//                    log.log(Level.SEVERE, null, ex);
+//                }
+//            });
 
             executor.submit(() -> {
                 try {
@@ -148,7 +154,7 @@ public class NostrExamples {
             });
 
             stop(executor);
-            
+
             if (executor.isTerminated()) {
                 log.log(Level.FINE, "================== The End");
             }
@@ -167,8 +173,8 @@ public class NostrExamples {
             ITag pkSenderTag = PubKeyTag.builder().publicKey(publicKeySender).petName("nostr-java").build();
             TagList tagList = new TagList();
             tagList.add(pkSenderTag);
-
-            GenericEvent event = new TextNoteEvent(publicKeySender, tagList, "Hello Astral, from the nostr-java API!");
+            String msg = "========测试信息========"; //.getBytes(StandardCharsets.UTF_8);
+            GenericEvent event = new TextNoteEvent(publicKeySender, tagList, msg);
 
             identity.sign(event);
             GenericMessage message = new EventMessage(event);
@@ -186,19 +192,25 @@ public class NostrExamples {
 
         try {
             final PublicKey publicKeySender = identity.getProfile().getPublicKey();
-            PublicKey publicKeyRcpt = new PublicKey(NostrUtil.hexToBytes("01739eae78ef308acb9e7a8a85f7d03484e0d338a7fae1ef2a8fa18e9b5915c5"));
+//            String lukePubBech32 = "npub170cp6drukm2ugl7l72huvkemzmcwy2upcerncqtujktjja54wqfqzkn3hs";
+            String lukePubBech32 = "npub1xrvnpsqn5xgg9rvpq7jawg05k2kyv22f24370qste8wxljlnr3dqyvp4qt";
+            PublicKey publicKeyRcpt = new PublicKey(NostrUtil.hexToBytes(Bech32.fromBech32(lukePubBech32)));
+//            PublicKey publicKeyRcpt = new PublicKey(NostrUtil.hexToBytes("01739eae78ef308acb9e7a8a85f7d03484e0d338a7fae1ef2a8fa18e9b5915c5"));
 
-            ITag pkeyRcptTag = PubKeyTag.builder().publicKey(publicKeyRcpt).petName("willy").build();
+            ITag pkeyRcptTag = PubKeyTag.builder().publicKey(publicKeyRcpt).build();
             TagList tagList = new TagList();
             tagList.add(pkeyRcptTag);
 
-            var event2 = new DirectMessageEvent(publicKeySender, tagList, "Hello Willy!");
+            var event2 = new DirectMessageEvent(publicKeySender, tagList, "我是这个世界的一个和平主义者，我首先收到信息是你们文明的幸运，警告你们：不要回答！不要回答！不要回答！！！\n" +
+                    "你们的方向上有千万颗恒星，只要不回答，这个世界就无法定位发出源。\n" +
+                    "如果回答，发射器将被定位，你们的文明将遭到入侵，你们的世界将被占领！\n" +
+                    "不要回答！不要回答！！不要回答！！！");
 
             identity.encryptDirectMessage(event2);
             identity.sign(event2);
 
-            GenericMessage message = new EventMessage(event2);
-
+//            GenericMessage message = new EventMessage(event2, 4);
+            GenericMessage message = new EventMessage(event2,1);
             client.send(message);
 
         } catch (UnsupportedNIPException ex) {
@@ -404,17 +416,34 @@ public class NostrExamples {
         logHeader("filters");
         try {
             KindList kindList = new KindList();
-            kindList.add(Kind.EPHEMEREAL_EVENT);
+//            kindList.add(Kind.EPHEMEREAL_EVENT);
+//            kindList.add(Kind.SET_METADATA);
             kindList.add(Kind.TEXT_NOTE);
+            kindList.add(Kind.ENCRYPTED_DIRECT_MESSAGE);
+//            kindList.add(Kind.CONTACT_LIST);
+//            kindList.add(Kind.EPHEMEREAL_EVENT);
+//            kindList.add(Kind.REPLACEABLE_EVENT);
 
-            Filters filters = Filters.builder().kinds(kindList).limit(10).build();
+//          ITag pkeyRcptTag = PubKeyTag.builder().publicKey(identity.getProfile().getPublicKey()).build();
+            String lukePubBech32 = "npub170cp6drukm2ugl7l72huvkemzmcwy2upcerncqtujktjja54wqfqzkn3hs";
+            PublicKey lukePublicKey = new PublicKey(NostrUtil.hexToBytes(Bech32.fromBech32(lukePubBech32)));
+
+            nostr.base.list.PublicKeyList authors = new nostr.base.list.PublicKeyList();
+//            tagList.add(lukePublicKey);
+//            logHeader("public Key==>" + lukePublicKey);
+            authors.add(identity.getProfile().getPublicKey());
+
+            Filters filters = Filters.builder().kinds(kindList).authors(authors).limit(20).build();
+//            Filters filters = Filters.builder().kinds(kindList).limit(10).build();
             FiltersList filtersList = new FiltersList();
             filtersList.add(filters);
 
             String subId = "subId" + System.currentTimeMillis();
             GenericMessage message = new ReqMessage(subId, filtersList);
-
+//            logHeader("send1111111");
             client.send(message);
+//            logHeader("send2222222");
+
         } catch (Exception ex) {
             throw new NostrException(ex);
         }

@@ -27,6 +27,11 @@ public class NipUtil {
 
         var e = event.getClass().getDeclaredAnnotation(Event.class);
         int nip = e == null ? 1 : e.nip();
+        // TODO 兼容EIP=1 EIP=4
+//        if(nip==4) {
+//            return true;
+//        }
+
         return relay.getSupportedNips().contains(nip);
     }
 

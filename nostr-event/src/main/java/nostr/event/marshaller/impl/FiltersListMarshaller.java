@@ -35,7 +35,7 @@ public class FiltersListMarshaller extends BaseListMarhsaller {
 
         final List<Filters> list = filtersList.getList();
         if (!list.isEmpty()) {
-            result.append("[");
+//            result.append("[");
 
             result.append(list.stream().filter(f -> f != null).map(f -> {
                 try {
@@ -46,7 +46,7 @@ public class FiltersListMarshaller extends BaseListMarhsaller {
                 }
             }).collect(Collectors.joining(",")));
 
-            result.append("]");
+//            result.append("]");
         }
 
         return result.toString();

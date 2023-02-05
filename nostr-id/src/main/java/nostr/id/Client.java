@@ -56,7 +56,16 @@ public class Client {
     public void send(@NonNull GenericMessage message) {
 
         relays.parallelStream()
-                .filter(r -> r.getSupportedNips().contains(message.getNip()))
+                .filter(r ->{
+                            if(message.getNip()==4 || r.getSupportedNips().contains(message.getNip())){
+//                                log.log(Level.WARNING, "Relay {0} not support nip {1}", new Object[]{r.getUri(), message.getNip()});
+                                return true;
+                            }else{
+                                log.log(Level.WARNING, "Client.sene Relay {0} {1} not support nip {2}", new Object[]{r.getUri(), r.getSupportedNips(), message.getNip()});
+                                return false;
+                            }
+                        }
+                )
                 .forEach(r -> {
                     try {
                         var rh = RequestHandler.builder().connection(new Connection(r)).message(message).build();
@@ -83,7 +92,7 @@ public class Client {
         try {
             var connection = new Connection(relay);
             String strInfo = connection.getRelayInformation();
-            log.log(Level.FINE, "Relay information: {0}", strInfo);
+            log.log(Level.INFO, "Relay information: {0}", strInfo);
             ObjectValue info = new JsonObjectUnmarshaller(strInfo).unmarshall();
 
             if (((ObjectValue) info).get("\"contact\"").isPresent()) {
@@ -128,11 +137,14 @@ public class Client {
 
             if (((ObjectValue) info).get("\"pubkey\"").isPresent()) {
                 final IValue pubKey = ((ObjectValue) info).get("\"pubkey\"").get();
-                var strPubKey = pubKey == null ? "" : pubKey.toString();
-                relay.setPubKey(new PublicKey(NostrUtil.hexToBytes(strPubKey)));
+                var strPubKey = pubKey == null  ? "" : pubKey.toString();
+                if(strPubKey.length() >= 65){
+                    relay.setPubKey(new PublicKey(NostrUtil.hexToBytes(strPubKey)));
+                }
             }
         } catch (Exception ex) {
-            log.log(Level.SEVERE, null, ex);
+            log.log(Level.SEVERE, "relay={0} exception=${1}", new Object[]{relay.getUri(), ex});
+            ex.printStackTrace();
         }
     }
 

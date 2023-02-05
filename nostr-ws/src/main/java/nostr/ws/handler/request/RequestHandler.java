@@ -43,17 +43,20 @@ public class RequestHandler implements IHandler {
         
         final Relay relay = connection.getRelay();
 
-        if (!relay.getSupportedNips().contains(message.getNip())) {
-            throw new UnsupportedNIPException(String.format("NIP-%d is not supported by relay %s. Supported NIPS: %s", new Object[]{message.getNip(), relay, relay.printSupportedNips()}));
-        }
+//        if (!relay.getSupportedNips().contains(message.getNip())) {
+//            throw new UnsupportedNIPException(String.format("NIP-%d is not supported by relay %s. Supported NIPS: %s", new Object[]{message.getNip(), relay, relay.printSupportedNips()}));
+//        }
 
         final Session session = this.connection.getSession();
         if (session != null) {
             RemoteEndpoint remote = session.getRemote();
 
-            log.log(Level.FINE, "Sending Message: {0}", message);
+            log.log(Level.INFO, "Sending Message: {0}", message);
 
             final String msg = new MessageMarshaller(message, relay).marshall();
+//            String newMsg = "[\"REQ\",\"subId1675490234998\",{\"limit\":10,\"kinds\":[1]}]";
+            log.log(Level.INFO, " ==========================Sending Message Str "+ msg);
+
             remote.sendString(msg);
 
             return;

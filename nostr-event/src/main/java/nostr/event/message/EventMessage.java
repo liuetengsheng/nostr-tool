@@ -24,4 +24,9 @@ public class EventMessage extends GenericMessage {
         super(Command.EVENT.name());
         this.event = event;
     }
+
+    public EventMessage(@NonNull IEvent event, Integer nip) {
+        super(Command.EVENT.name(), nip);
+        this.event = event;
+    }
 }
