@@ -1,0 +1,35 @@
+
+package nostr.ws.handler.response;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.java.Log;
+import nostr.base.Command;
+
+import java.util.logging.Level;
+
+/**
+ *
+ * @author squirrel
+ */
+@Builder
+@Data
+@EqualsAndHashCode(callSuper = false)
+@ToString
+@Log
+public class NoticeResponseHandler extends BaseResponseHandler {
+    
+    private final String message;
+
+    public NoticeResponseHandler(String message) {
+        super(Command.NOTICE);
+        this.message = message;
+    }    
+
+    @Override
+    public void process() {
+        log.log(Level.WARNING, "NoticeResponseHandler {0}", this);
+    }    
+}
