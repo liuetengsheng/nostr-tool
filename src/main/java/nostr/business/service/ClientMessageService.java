@@ -33,11 +33,6 @@ import java.util.List;
 import java.util.Objects;
 
 
-/**
- * @Description 请描述类的业务用途
- * @Author young
- * @Date 2023/2/6 15:16
- */
 @Slf4j
 @Service
 public class ClientMessageService extends IClientMessageService {
@@ -57,15 +52,12 @@ public class ClientMessageService extends IClientMessageService {
     @Resource
     private SendMessageMapper sendMessageMapper;
 
-//    @Value("${env.eth.privateKey}")
-//    public String privateKey;
-
     /**
      * 录入用户消息
      * @param message 消息内容
      * @param type 消息类型
      */
-    @Async("postExecutor")
+    @Async("nostrExecutor")
     @Override
     public void dealEvent(String message,String type, LocalDateTime now){
 
@@ -112,14 +104,11 @@ public class ClientMessageService extends IClientMessageService {
             return;
         }
 
-//        String contentString = po.getContentString(NostrUtil.hexToBytes(privateKey));
         // 设置消息类型 读 还是 写
         po.setOperateType(OperateType.getType(po.getPlaintextContext()));
         // 设置用户nonce值信息
         po.analysisNonce();
 
-        // 判断消息时间 是否符合标准
-        boolean createdFlag = true; //MessageStatus.checkCreatedAt(po,now);
         try {
             po.setNpubAddress(Bech32.toBech32(Bech32Prefix.NPUB.getCode(), jsonObject.getString("pubkey")));
             // 保存消息
@@ -129,11 +118,6 @@ public class ClientMessageService extends IClientMessageService {
         }catch (Exception e){
             log.error("保存消息异常：",e);
         }
-
-        //符合标准的消息 才能发送消息监听
-//        if (createdFlag) {
-//            this.sendMsgEvent(po);
-//        }
     }
 
 
@@ -172,7 +156,7 @@ public class ClientMessageService extends IClientMessageService {
         return System.currentTimeMillis()/1000;
     }
 
-    @Async("postExecutor")
+    @Async("nostrExecutor")
     @Override
     public void dealOk(String message, String relay) {
         List<String> lists = JSON.parseArray(message, String.class);
@@ -217,22 +201,14 @@ public class ClientMessageService extends IClientMessageService {
     }
 
 
-    /**
-     * Get new event list
-     * @param priority
-     * @return
-     */
     public List<ClientMessagePO> getNewEvent(int priority){
-        List<ClientMessagePO> pos = messageMapper.selectList(
+        return messageMapper.selectList(
                 new LambdaQueryWrapper<ClientMessagePO>()
                         .eq(ClientMessagePO::getStatus, MessageStatus.CREATE)
                         .eq(ClientMessagePO::getOperateType, priority)
                         .orderBy(true,true,ClientMessagePO::getId)
                         .last("limit 100")
         );
-        return pos;
     }
-
-
 
 }
